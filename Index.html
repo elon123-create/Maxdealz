@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Affiliate Marketplace</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --hover-color: #2980b9;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+        }
+
+        header {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .search-bar {
+            padding: 0.5rem;
+            border-radius: 5px;
+            border: none;
+            width: 300px;
+        }
+
+        .categories {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .category-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 20px;
+            background: var(--secondary-color);
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .category-btn:hover {
+            background: var(--hover-color);
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .product-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .product-content {
+            padding: 1rem;
+        }
+
+        .buy-now {
+            display: block;
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--secondary-color);
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .buy-now:hover {
+            background: var(--hover-color);
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .search-bar {
+                width: 100%;
+            }
+
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <h1>Affiliate Marketplace</h1>
+            <input type="text" class="search-bar" placeholder="Search products...">
+        </div>
+        <div class="categories">
+            <button class="category-btn active" data-category="all">All</button>
+            <!-- Categories will be populated by JavaScript -->
+        </div>
+    </header>
+
+    <main>
+        <div class="products-grid" id="productsContainer">
+            <!-- Product cards will be populated by JavaScript -->
+        </div>
+    </main>
+
+    <script>
+        // Sample products data (In real scenario, load from JSON file)
+        const products = [
+            {
+                id: 1,
+                title: "Wireless Headphones",
+                price: "$199.99",
+                description: "High-quality noise-canceling wireless headphones",
+                category: "Electronics",
+                image: "https://via.placeholder.com/300x200",
+                affiliateLink: "#",
+                clicks: 150
+            },
+            // Add more sample products
+        ];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCategories();
+            renderProducts(products);
+            setupEventListeners();
+        });
+
+        function renderCategories() {
+            const categories = ['All', ...new Set(products.map(p => p.category))];
+            const container = document.querySelector('.categories');
+            
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'category-btn';
+                btn.textContent = cat;
+                btn.dataset.category = cat.toLowerCase();
+                container.appendChild(btn);
+            });
+        }
+
+        function renderProducts(productsArray) {
+            const container = document.getElementById('productsContainer');
+            container.innerHTML = '';
+            
+            productsArray.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <img src="${product.image}" alt="${product.title}" class="product-image">
+                    <div class="product-content">
+                        <h3>${product.title}</h3>
+                        <p class="price">${product.price}</p>
+                        <p class="description">${product.description}</p>
+                        <a href="${product.affiliateLink}" class="buy-now" target="_blank" onclick="trackClick(${product.id})">Buy Now</a>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function setupEventListeners() {
+            // Category filtering
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const category = btn.dataset.category;
+                    filterProducts(category);
+                });
+            });
+
+            // Search functionality
+            document.querySelector('.search-bar').addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const filtered = products.filter(p => 
+                    p.title.toLowerCase().includes(searchTerm) || 
+                    p.description.toLowerCase().includes(searchTerm)
+                );
+                renderProducts(filtered);
+            });
+        }
+
+        function filterProducts(category) {
+            const filtered = category === 'all' 
+                ? products 
+                : products.filter(p => p.category.toLowerCase() === category);
+            renderProducts(filtered);
+        }
+
+        function trackClick(productId) {
+            const product = products.find(p => p.id === productId);
+            product.clicks++;
+            // In real implementation: Send to server/localStorage
+        }
+
+        // Future features:
+        // - Load products from JSON file
+        // - Admin dashboard (would require backend)
+        // - Top products section
+        // - Click tracking persistence
+    </script>
+</body>
+</html>
